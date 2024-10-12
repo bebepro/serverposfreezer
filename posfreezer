@@ -1,0 +1,59 @@
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+local button = script.Parent -- Reference to the UI button (TextButton)
+local freezingActive = false
+local originalPosition = humanoidRootPart.Position -- Store the initial position to freeze
+
+-- Function to start freezing the player's position
+local function startFreezing()
+	while freezingActive do
+		if humanoidRootPart then
+			-- Continuously reset the position to the original stored position to freeze movement
+			humanoidRootPart.CFrame = CFrame.new(originalPosition)
+		end
+		wait(0.05) -- Short delay to make the freezing smooth
+	end
+end
+
+-- Function to toggle freezing
+local function toggleFreezing()
+	freezingActive = not freezingActive
+
+	if freezingActive then
+		button.BackgroundColor3 = Color3.new(0.905882, 0.196078, 0.0196078) -- Orange when active
+		originalPosition = humanoidRootPart.Position -- Store the current position to freeze
+		startFreezing() -- Start freezing the position
+	else
+		button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Black when inactive
+	end
+end
+
+-- Function to handle character respawn
+local function onCharacterAdded(newCharacter)
+	character = newCharacter
+	humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+	originalPosition = humanoidRootPart.Position -- Reset the position for the new character
+
+	-- If freezing is active when the character respawns, reapply freezing
+	if freezingActive then
+		startFreezing()
+	end
+end
+
+-- Connect the button click event to toggle position freezing
+button.MouseButton1Click:Connect(toggleFreezing)
+
+-- Connect character respawn event
+player.CharacterAdded:Connect(onCharacterAdded)
+
+-- Initialize the button state and handle the current character
+button.BackgroundColor3 = Color3.new(0.0117647, 0.0117647, 0.0117647) -- Set the initial button color to black
+
+-- Make sure freezing works when the script first runs, even if the character already exists
+if player.Character then
+	humanoidRootPart = player.Character:WaitForChild("HumanoidRootPart")
+	originalPosition = humanoidRootPart.Position -- Set the initial position if the character already exists
+end
